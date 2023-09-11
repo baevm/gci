@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"gci/ast"
 	"gci/lexer"
 	"gci/token"
@@ -14,7 +13,26 @@ type Parser struct {
 	peekToken token.Token // points to next token
 
 	errors []string
+
+	prefixParseFns map[token.TokenType]prefixParseFn // called when encounter token in prefix
+	infixParseFns  map[token.TokenType]infixParseFn  // called when encounter token in infix
 }
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
+// Higher const = bigger precedence over last operator
+const (
+	LOWEST  = iota + 1
+	EQUALS  // ==
+	LTGT    // > <
+	SUM     // +
+	PRODUCT // *
+	PREFIX  // -X or !X
+	CALL    // function(x)
+)
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
@@ -25,6 +43,13 @@ func New(l *lexer.Lexer) *Parser {
 	// Read 2 tokens to set currToken and peekToken
 	p.nextToken()
 	p.nextToken()
+
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
 	return p
 }
@@ -51,60 +76,12 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) Errors() []string {
-	return p.errors
+func (p *Parser) registerPrefix(tkn token.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[tkn] = fn
 }
 
-func (p *Parser) peekError(tkn token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", tkn, p.peekToken.Type)
-	p.errors = append(p.errors, msg)
-}
-
-func (p *Parser) parseStatement() ast.Statement {
-	switch p.currToken.Type {
-	case token.LET:
-		return p.parseLetStatement()
-	case token.RETURN:
-		return p.parseReturnStatement()
-	default:
-		return nil
-	}
-}
-
-// Function to parse let statement
-// 1. It expects first token to be identifier
-// 2. Then there should be equal sign token
-// 3. At the end should be semicolon token
-func (p *Parser) parseLetStatement() ast.Statement {
-	stmt := &ast.LetStatement{Token: p.currToken}
-
-	if !p.expectPeek(token.IDENT) {
-		return nil
-	}
-
-	stmt.Name = &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
-
-	if !p.expectPeek(token.ASSIGN) {
-		return nil
-	}
-
-	for !p.currTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
-}
-
-func (p *Parser) parseReturnStatement() ast.Statement {
-	stmt := &ast.ReturnStatement{Token: p.currToken}
-
-	p.nextToken()
-
-	for !p.currTokenIs(token.SEMICOLON) {
-		p.nextToken()
-	}
-
-	return stmt
+func (p *Parser) registerInfix(tkn token.TokenType, fn infixParseFn) {
+	p.infixParseFns[tkn] = fn
 }
 
 func (p *Parser) expectPeek(tkn token.TokenType) bool {
