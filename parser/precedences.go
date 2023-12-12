@@ -1,6 +1,8 @@
 package parser
 
-import "gci/token"
+import (
+	"gci/token"
+)
 
 var precedences = map[token.TokenType]int{
 	token.EQ:       EQUALS, // Lowest precedence
@@ -10,7 +12,8 @@ var precedences = map[token.TokenType]int{
 	token.PLUS:     SUM,
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
-	token.ASTERISK: PRODUCT, // Highest precedence
+	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL, // Highest precedence
 }
 
 func (p *Parser) peekPrecedece() int {
