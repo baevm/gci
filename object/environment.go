@@ -4,6 +4,9 @@ package object
 type Environment struct {
 	// Hashmap of variable names and its values
 	store map[string]Object
+
+	// Parent enviroment
+	outer *Environment
 }
 
 func NewEnvironment() *Environment {
@@ -12,8 +15,21 @@ func NewEnvironment() *Environment {
 	return &Environment{store: s}
 }
 
+// Used for function calls
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	env := NewEnvironment()
+	env.outer = outer
+
+	return env
+}
+
 func (e *Environment) Get(name string) (Object, bool) {
 	obj, ok := e.store[name]
+
+	if !ok && e.outer != nil {
+		obj, ok = e.outer.Get(name)
+	}
+
 	return obj, ok
 }
 

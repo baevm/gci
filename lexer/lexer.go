@@ -118,7 +118,7 @@ func newToken(tokenType token.TokenType, ch byte) token.Token {
 
 // function to check allowed letters in identifier
 func isLetter(ch byte) bool {
-	return ('a' <= ch && ch >= 'z') || ('A' <= ch && ch >= 'Z') || ch == '_'
+	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_'
 }
 
 // function to check if char is digit
