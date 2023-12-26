@@ -1,7 +1,6 @@
 package evaluator
 
 import (
-	"fmt"
 	"gci/lexer"
 	"gci/object"
 	"gci/parser"
@@ -13,8 +12,6 @@ func testEval(input string) object.Object {
 	p := parser.New(l)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
-
-	fmt.Println(program)
 
 	return Eval(program, env)
 }
@@ -237,6 +234,10 @@ func Test_ErrorHandling(t *testing.T) {
 			"foobar",
 			"identifier not found: foobar",
 		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 
 	for _, tt := range tests {
@@ -330,4 +331,34 @@ func Test_Closure(t *testing.T) {
 	evaluated := testEval(input)
 
 	testIntegerObject(t, evaluated, 4)
+}
+
+func Test_StringLiteral(t *testing.T) {
+	input := `"Hello World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
+func Test_StringConcat(t *testing.T) {
+	input := `"Hello" + " " + "World"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello World" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
 }

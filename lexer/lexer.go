@@ -91,6 +91,9 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tkn.Literal = ""
 		tkn.Type = token.EOF
+	case '"':
+		tkn.Type = token.STRING
+		tkn.Literal = l.readString()
 	default:
 		if isLetter(l.ch) {
 			tkn.Literal = l.readIdentifier()
@@ -153,4 +156,19 @@ func (l *Lexer) readNumber() string {
 	}
 
 	return l.input[currentPosition:l.position]
+}
+
+// function to read whole string
+func (l *Lexer) readString() string {
+	position := l.position + 1
+
+	for {
+		l.readChar()
+
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+
+	return l.input[position:l.position]
 }

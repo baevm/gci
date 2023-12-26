@@ -297,3 +297,7 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 
 	return args
 }
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.currToken, Value: p.currToken.Literal}
+}
