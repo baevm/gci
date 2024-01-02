@@ -13,7 +13,8 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
-	token.LPAREN:   CALL, // Highest precedence
+	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX, // Highest precedence
 }
 
 func (p *Parser) peekPrecedece() int {
