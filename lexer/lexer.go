@@ -80,6 +80,8 @@ func (l *Lexer) NextToken() token.Token {
 		tkn = newToken(token.COMMA, l.ch)
 	case ';':
 		tkn = newToken(token.SEMICOLON, l.ch)
+	case ':':
+		tkn = newToken(token.COLON, l.ch)
 	case '(':
 		tkn = newToken(token.LPAREN, l.ch)
 	case ')':
